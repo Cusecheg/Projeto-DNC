@@ -9,6 +9,7 @@ export const WhatsAppButton = () => {
   return (
     <div className={styles.whatsappButton} onClick={handleWhatsAppClick}>
       <img
+        className="hover:shadow-md transition duration-300 ease-in-out transform hover:-translate-y-6 hover:scale-105 cursor-pointer"
         src="/WhatsApp_icon.png"
         alt="Ícone do WhatsApp"
         width={50}
