@@ -3,6 +3,17 @@
 import { Member } from "@prisma/client";
 import { ChangeEvent, useState } from "react";
 import { useForm } from "react-hook-form";
+import { CldUploadWidget, CloudinaryUploadWidgetInfo } from 'next-cloudinary';
+ 
+<CldUploadWidget uploadPreset="<Your Upload Preset>">
+  {({ open }) => {
+    return (
+      <button onClick={() => open()}>
+        Upload an Image
+      </button>
+    );
+  }}
+</CldUploadWidget>
 
 export const FormAddMember = () => {
   const [message, setMessage] = useState<string | null>("");
@@ -12,6 +23,8 @@ export const FormAddMember = () => {
   const [fotoURL, setFotoURL] = useState<string | null>(
     "/ImgMembers/Background.svg"
   );
+  const [resource, setResource] = useState<string | CloudinaryUploadWidgetInfo | undefined>(undefined);
+
 
   //Add members
   const onSubmit = handleSubmit(async (data) => {
@@ -163,6 +176,33 @@ export const FormAddMember = () => {
                     accept="image/*"
                     onChange={handleSelectedImage}
                   />
+                   
+                  <CldUploadWidget uploadPreset="ml_default"
+                  onSuccess={(result) => {
+                    let imageUrl: string | undefined;
+                      if (typeof result?.info === 'string') {
+                        // Si result?.info es una cadena, no hay información de la imagen disponible
+                        console.error('No se encontró información de la imagen.');
+                      } else {
+                        // Si result?.info es un objeto, acceder a la URL segura de la imagen
+                        imageUrl = result?.info?.secure_url;
+                      }
+                      console.log(imageUrl); 
+
+                  }}
+                  >
+                    {({ open }) => {
+                      function handleOnClick(){
+                        // setResource(undefined);
+                        open();
+                      }
+                      return (
+                        <button onClick={handleOnClick}>
+                          Upload an Image
+                        </button>
+                      );
+                    }}
+                  </CldUploadWidget>
                   <div className="grid grid-cols-2 place-items-center  pt-4">
                     <button
                       className="bg-black rounded-md  text-white font-Alegreya w-24  py-1  transition-all duration-500 hover:-translate-y-2"
