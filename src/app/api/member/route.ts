@@ -1,9 +1,18 @@
 import { PrismaClient } from "@prisma/client";
-import { unlink, writeFile } from "fs/promises";
+import { writeFile, unlink } from "fs/promises";
 import { NextRequest, NextResponse } from "next/server";
+import cloudinary from "cloudinary";
 import path from "path";
 
 const prisma = new PrismaClient();
+
+cloudinary.v2.config({
+  cloud_name: process.env.CLOUD_NAME_CLOUDINARY,
+  api_key: process.env.API_KEY_CLOUDINARY,
+  api_secret: process.env.API_SECRET_CLOUDINARY,
+});
+
+
 
 export async function GET() {
   try {
@@ -22,26 +31,33 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const data = await req.formData();
-    const file = data.get("image");
+    const file = data.get("image") as File;
+
     if (!file || !(file instanceof File)) {
       throw new Error("Nenhum arquivo escolhido!");
     }
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
 
-    const filePath = path.join(
-      process.cwd(),
-      "public/uploads",
-      `${file.lastModified.toString()}_${file.name}`
-    );
-    writeFile(filePath, buffer);
+    const bytes = await file.arrayBuffer();
+    const base64String = Buffer.from(bytes).toString("base64")
+   
+    
+    const result = await cloudinary.v2.uploader.upload(`data:${file.type};base64,${base64String}`, {
+      folder: 'uploads',
+      allowed_formats: ['jpg', 'jpeg', 'png'],
+      transformation: {
+        width: 500,
+        height: 500,
+        crop: 'limit'
+      }
+    });
+
     const id = data.get("id");
     const name = data.get("name");
     const profession = data.get("profession");
     const location = data.get("location");
     const email = data.get("email");
     const linkedin = data.get("linkedin");
-    const image = `/uploads/${file.lastModified.toString()}_${file.name}`;
+    const image = result.secure_url; 
 
     await prisma.member.create({
       data: {
