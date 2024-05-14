@@ -1,36 +1,68 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import path from "path";
-import { writeFile } from "fs/promises";
+import cloudinary from "cloudinary";
+
 
 const prisma = new PrismaClient();
 
-export async function POST(request: NextRequest) {
+cloudinary.v2.config({
+  cloud_name: process.env.CLOUD_NAME_CLOUDINARY,
+  api_key: process.env.API_KEY_CLOUDINARY,
+  api_secret: process.env.API_SECRET_CLOUDINARY,
+});
+
+
+// export async function GET(request: NextRequest) {
+//   try {
+//     const id = request.nextUrl.searchParams.get("postId");
+
+//     if (typeof id === "string") {
+//       const post = await prisma.post.findFirst({
+//         where: {
+//           id: id,
+//         },
+//       });
+
+//       return NextResponse.json(post);
+//     }
+
+//     const posts = await prisma.post.findMany();
+
+//     return NextResponse.json(posts);
+//   } catch (error) {
+//     return NextResponse.json({ error: error }, { status: 500 });
+//   }
+// }
+
+export async function POST(req: NextRequest) {
   try {
-    const data = await request.formData();
-    const authorId = data.get("authorId");
-    const file = data.get("image");
-    const datePublication = data.get("datePublication");
-    const title = data.get("title");
-    const text = data.get("text");
+    const data = await req.formData();
+    const file = data.get("image") as File;
 
     if (!file || !(file instanceof File)) {
       throw new Error("Nenhum arquivo escolhido!");
     }
 
     const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    const base64String = Buffer.from(bytes).toString("base64")
+   
+    
+    const result = await cloudinary.v2.uploader.upload(`data:${file.type};base64,${base64String}`, {
+      folder: 'uploads',
+      allowed_formats: ['jpg', 'jpeg', 'png'],
+      transformation: {
+        width: 800,
+        height: 400,
+        crop: 'limit'
+      }
+    });
 
-    const filePath = path.join(
-      process.cwd(),
-      "public/uploadsArtigos",
-      `${file.lastModified.toString()}_${file.name}`
-    );
-    writeFile(filePath, buffer);
-
-    const image = `/uploadsArtigos/${file.lastModified.toString()}_${
-      file.name
-    }`;
+    const image = result.secure_url; 
+    const authorId = data.get("authorId");
+    const datePublication = data.get("datePublication");
+    const title = data.get("title");
+    const text = data.get("text");
+   
 
     await prisma.post.create({
       data: {
@@ -42,11 +74,11 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ msg: "Post realizado com sucesso!" });
+    return NextResponse.json({ msg: "Post realizado com sucesso!", authorId: authorId });
   } catch (error: any) {
     return NextResponse.json(
       {
-        msg: "Não foi possivel realizar o post!",
+        msg: "Erro ao salvar o post",
         error: error.message,
       },
       { status: 500 }
@@ -54,34 +86,13 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
-  try {
-    const id = request.nextUrl.searchParams.get("postId");
-
-    if (typeof id === "string") {
-      const post = await prisma.post.findFirst({
-        where: {
-          id: id,
-        },
-      });
-
-      return NextResponse.json(post);
-    }
-
-    const posts = await prisma.post.findMany();
-
-    return NextResponse.json(posts);
-  } catch (error) {
-    return NextResponse.json({ error: error }, { status: 500 });
-  }
-}
 
 export async function DELETE(request: NextRequest) {
   try {
     const id = request.nextUrl.searchParams.get("postId");
 
     if (id) {
-      const post = await prisma.post.delete({
+      await prisma.post.delete({
         where: {
           id,
         },

@@ -53,7 +53,6 @@ export const Members = ({
     form.append("email", data.email);
     form.append("linkedin", data.linkedin);
     form.append("image", img);
-    form.append("lastImage", image);
 
     try {
       const response = await fetch("/api/member", {
@@ -75,20 +74,14 @@ export const Members = ({
         }, 3000);
       }
     } catch (error) {
-      if (error instanceof SyntaxError) {
-        // Manejar errores de sintaxis JSON
-        alert("Error de sintaxis JSON");
-      } else {
-        // Manejar otros errores
-        alert(error);
-      }
+      console.error(error)
     }
   });
 
   //Delete member
   const onDelete = async () => {
     try {
-      const response = await fetch(`/api/member?id=${id}&filePath=${image}`, {
+      const response = await fetch(`/api/member?id=${id}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "Aplication/json",
@@ -110,13 +103,7 @@ export const Members = ({
         }, 3000);
       }
     } catch (error) {
-      if (error instanceof SyntaxError) {
-        // Manejar errores de sintaxis JSON
-        alert("Error de sintaxis JSON");
-      } else {
-        // Manejar otros errores
-        alert(error);
-      }
+      console.error(error)
     }
   };
 
@@ -135,7 +122,8 @@ export const Members = ({
       {handdleEditar && (
         <>
           <div className="w-full h-full bg-slate-700 opacity-50 rounded-3xl  absolute  z-20" />
-          <div className="flex flex-col  items-center md:flex md:flex-row md:items-start  bg-white rounded-3xl  absolute  z-30">
+          <div className="flex flex-col items-center md:flex md:flex-row md:items-start  bg-white rounded-3xl  absolute  z-30"
+          >
             <img
               className="p-4"
               src={`${fotoURL}`}
@@ -155,6 +143,7 @@ export const Members = ({
                 id="name"
                 type="text"
                 placeholder="Nome"
+                required
               />
               <label htmlFor="profession">Profissão</label>
               <input
@@ -165,6 +154,7 @@ export const Members = ({
                 id="profession"
                 type="text"
                 placeholder="Profissao"
+                required
               />
               <label htmlFor="location">Região</label>
               <input
@@ -175,6 +165,7 @@ export const Members = ({
                 id="location"
                 type="text"
                 placeholder="Região"
+                required
               />
               <label htmlFor="email">Email</label>
               <input
@@ -195,16 +186,21 @@ export const Members = ({
                 id="linkedin"
                 type="text"
                 placeholder="LinkedIn"
+                
               />
               <label htmlFor="image">Foto</label>
               <input
                 className="text-gray-500"
                 id="image"
                 type="file"
-                accept="image/*"
+                accept="image/jpg, image/jpeg, image/png"
                 onChange={handleSelectedImage}
               />
-              <div className="grid grid-cols-2 place-items-center  pt-4">
+              <p className="text-center pt-1"> 
+                jpeg, jpg or png (Máx. 500 x 500px).<br/>
+                Máx(2Mb)
+              </p>
+              <div className="grid grid-cols-2 place-items-center  pt-1">
                 <button
                   className="bg-black rounded-md  text-white font-Alegreya w-24  py-1  transition-all duration-500 hover:-translate-y-2"
                   type="submit"
@@ -266,7 +262,7 @@ export const Members = ({
           )}
           {showModal && (
             <ConfirmationModal
-              message="¿Você deseja realmente deseja realizar esta ação?"
+              message="¿Você deseja realmente realizar esta ação?"
               onConfirm={onDelete}
               onCancel={() => {
                 setShowModal(false);

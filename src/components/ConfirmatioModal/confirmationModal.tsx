@@ -11,7 +11,7 @@ interface ConfirmationModalProps {
   onCancel,
 }) => {
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 font-Alegreya">
+    <div className="fixed z-10 inset-0 flex items-center justify-center bg-black bg-opacity-50 font-Alegreya">
       <div className="bg-white p-8 rounded-lg shadow-lg">
         <p className="mb-4">{message}</p>
         <div className="flex justify-end">

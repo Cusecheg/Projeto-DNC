@@ -1,8 +1,7 @@
 import { PrismaClient } from "@prisma/client";
-import { writeFile, unlink } from "fs/promises";
 import { NextRequest, NextResponse } from "next/server";
 import cloudinary from "cloudinary";
-import path from "path";
+
 
 const prisma = new PrismaClient();
 
@@ -14,19 +13,19 @@ cloudinary.v2.config({
 
 
 
-export async function GET() {
-  try {
-    const allMembers = await prisma.member.findMany();
+// export async function GET() {
+//   try {
+//     const allMembers = await prisma.member.findMany();
 
-    return NextResponse.json(allMembers);
-  } catch (error) {
-    return NextResponse.json({
-      msg: error,
-      status: 500,
-      error: error,
-    });
-  }
-}
+//     return NextResponse.json(allMembers);
+//   } catch (error) {
+//     return NextResponse.json({
+//       msg: error,
+//       status: 500,
+//       error: error,
+//     });
+//   }
+// }
 
 export async function POST(req: NextRequest) {
   try {
@@ -84,37 +83,44 @@ export async function POST(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    const data = await req.formData();
-    const file = data.get("image") as File;
-    const lastImage = data.get("lastImage")?.toString();
-    let image: string | undefined = "";
 
-    if (file instanceof File) {
-      image = `/uploads/${file.lastModified.toString()}_${file.name}`;
-    } else {
-      image = lastImage;
-    }
-    const id = data.get("id")?.toString();
+    const data = await req.formData();
+    const file = data.get("image") as File | String;
+    const id = data.get("id");
     const name = data.get("name");
     const profession = data.get("profession");
     const location = data.get("location");
     const email = data.get("email");
     const linkedin = data.get("linkedin");
+    let image = "";
 
-    if (image !== lastImage) {
+    if (file instanceof File){
+
       const bytes = await file.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      const filePath = path.join(
-        process.cwd(),
-        "public/uploads",
-        `${file.lastModified.toString()}_${file.name}`
-      );
-      writeFile(filePath, buffer);
+      const base64String = Buffer.from(bytes).toString("base64")
 
-      await unlink(`public${lastImage}`);
+      const result = await cloudinary.v2.uploader.upload(`data:${file.type};base64,${base64String}`, {
+        folder: 'uploads',
+        allowed_formats: ['jpg', 'jpeg', 'png'],
+        transformation: {
+          width: 500,
+          height: 500,
+          crop: 'limit'
+        }
+      });
+      image = result.secure_url; 
+
+      if(!result.ok){
+       throw new Error("Não foi possivel salvar a imagen");
+      }
+
+    }else{
+      image = file as string;
     }
+
+   
     await prisma.member.update({
-      where: { id },
+      where: { id: id as string },
       data: {
         name: name as string,
         profession: profession as string,
@@ -140,11 +146,16 @@ export async function PUT(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     const id = req.nextUrl.searchParams.get("id");
-    const filePath = req.nextUrl.searchParams.get("filePath");
-    if (!id || !filePath) {
+  
+    if (!id) {
       throw new Error("ID not provided in URL");
     }
-    await unlink(`public${filePath}`);
+
+    await prisma.post.deleteMany({
+      where: {
+        authorId: id,
+      }
+    })
 
     await prisma.member.delete({
       where: {
@@ -152,11 +163,11 @@ export async function DELETE(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ msg: "Membro apagado com sucesso!", id: id });
+    return NextResponse.json({ msg: "Os dados do membro foram removidos com sucesso!", id: id });
   } catch (error: any) {
     return NextResponse.json(
       {
-        msg: "Erro ao apagar membro!",
+        msg: "Erro ao remover dados do membro!",
         error: error.message,
       },
       { status: 500 }

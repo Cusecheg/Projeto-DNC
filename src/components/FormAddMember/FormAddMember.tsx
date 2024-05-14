@@ -106,6 +106,7 @@ export const FormAddMember = () => {
                     id="name"
                     type="text"
                     placeholder="Nome"
+                    required
                   />
                   <label htmlFor="profession">Profissão</label>
                   <input
@@ -116,6 +117,7 @@ export const FormAddMember = () => {
                     id="profession"
                     type="text"
                     placeholder="Profissao"
+                    required
                   />
                   <label htmlFor="location">Região</label>
                   <input
@@ -126,6 +128,7 @@ export const FormAddMember = () => {
                     id="location"
                     type="text"
                     placeholder="Região"
+                    required
                   />
                   <label htmlFor="email">Email</label>
                   <input
@@ -150,14 +153,19 @@ export const FormAddMember = () => {
                   <label htmlFor="image">Foto</label>
                   <input
                     {...register("image", {
-                      required: false,
+                      required: true,
                     })}
                     className="text-gray-500"
                     id="image"
                     type="file"
-                    accept="image/*"
+                    accept="image/jpg, image/jpeg, image/png"
                     onChange={handleSelectedImage}
+                    required                    
                   />
+                  <p className="text-center pt-3"> 
+                  jpeg, jpg or png (Máx. 500 x 500px).<br/>
+                  Máx(2Mb)
+                  </p>
                   <div className="grid grid-cols-2 place-items-center  pt-4">
                     <button
                       className="bg-black rounded-md  text-white font-Alegreya w-24  py-1  transition-all duration-500 hover:-translate-y-2"

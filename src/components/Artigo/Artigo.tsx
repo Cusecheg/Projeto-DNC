@@ -22,13 +22,15 @@ export const Artigo = async ({
   });
   return (
     <div className="relative flex flex-col items-center justify-center text-gray-800 max-w-3xl mb-5 box-content">
+      <div>
       <Image
         className="mb-5"
-        src={image}
+        src={`${image}`}
         alt="ERROR"
         width={500}
         height={500}
       />
+      </div>
       <h2 className="font-bold text-center text-2xl mb-3">{title}</h2>
       <div className="flex flex-col text-center justify-center">
       <div className="flex flex-row justify-center items-baseline gap-4">

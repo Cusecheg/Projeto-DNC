@@ -6,7 +6,6 @@ import Link from "next/link";
 export default async function Publicacoes() {
   const session = await auth();
   const artigo = await db.post.findMany();
-
   return (
     <>
       <main className="bg-gray-200 w-full">
@@ -36,11 +35,11 @@ export default async function Publicacoes() {
 
         <div className="flex justify-center items-center p-4 w-full">
           <div className="flex flex-col w-80 gap-2  items-center max-w-screen-xl md:justify-between md:w-full p-8 md:flex md:flex-row">
-            <h1 className="font-Lato text-3xl text-black font-thin">Artigos</h1>
+            <h1 className="text-3xl text-black underline font-Alegreya font-bold">Artigos</h1>
             {session && (
               <Link
                 href={"/novo-artigo"}
-                className="font-Lato text-xl text-black font-thin bg-gray-200 hover:bg-gray-300 py-2 px-3 rounded-lg border border-black outline-2"
+                className="bg-black rounded-md  text-white font-Alegreya mt-8 md:m-0   px-4 py-2  transition-all duration-500 hover:-translate-y-2"
               >
                 Publicar Novo Artigo
               </Link>

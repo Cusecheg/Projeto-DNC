@@ -16,17 +16,17 @@ const CardPublication = ({title, text, image} : CardPublicationProps) => (
     <>
     <div className="max-w-sm bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
       <a href="#">
-        <img className="rounded-t-lg" src={image} alt="error" />
+        <img className="rounded-t-lg bg-cover " src={image} alt="error" style={{width: "380px"}} />
       </a>
 
-      <div className="p-5">
+      <div className="justify-end p-5">
         <a href="#">
           <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900">
             {title}
           </h5>
         </a>
 
-        <p className="mb-3 font-normal text-gray-700 dark:text-gray-400">
+        <p className="mb-3 font-normal text-gray-700 dark:text-gray-400 break-words">
         <ShortenText text={text} />
         </p>
 
@@ -62,7 +62,7 @@ const CardPublication = ({title, text, image} : CardPublicationProps) => (
 
 const  SectionHome = async () => {
   const posts = await db.post.findMany();
-  const recentPost = posts.splice(0,3);
+  const recentPost = posts.splice(-3);
   return (
     <main className="grid place-items-center w-full  bg-gray-200">
       <section className="grid place-items-center p-8 ">

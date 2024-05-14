@@ -1,13 +1,18 @@
 "use client";
 
 import { Post } from "@prisma/client";
+import Image from "next/image";
 import { ChangeEvent, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 export const FormArtigo = ({ members }: { members: any[] }) => {
+  const [message, setMessage] = useState<string | null>("");
   const [userSelected, setUserSelected] = useState<string>("");
   const { register, handleSubmit, watch, reset} = useForm<Post>({});
   const [img, setImg] = useState<File | null>(null);
+  const [fotoURL, setFotoURL] = useState<string>(
+    "/ImgMembers/Background.svg"
+  );
 
   const onSubmit = handleSubmit(async (data) => {
     try {
@@ -22,29 +27,41 @@ export const FormArtigo = ({ members }: { members: any[] }) => {
         method: "POST",
         body: form,
       });
+          if (response.ok){
+            const res = await response.json();
+            setMessage(res.msg)
 
-      if (response.ok){
-        setImg(null);
-        reset();
-        setUserSelected("");
-      }
+            setTimeout(()=>{
 
-      return alert((await response.json()).msg);
+            setImg(null);
+            setFotoURL( "/ImgMembers/Background.svg")
+            reset();
+            setUserSelected("");
+            setMessage("");
+            }, 3000)
+          } else {
+            const data = await response.json();
+            setMessage(data.msg);
+            setTimeout(() => {
+              setMessage(null);
+            }, 3000);
+          }
     } catch (error) {
-      return alert(error);
+      console.error(error)
     }
   });
 
-  //Conversion seleted image (possivel render in this function)
+  //Conversion seleted image and render
   const handleSelectedImage = (event: ChangeEvent<HTMLInputElement>) => {
     const files = event.currentTarget.files;
     if (files && files.length > 0) {
       const imageSelected = files[0];
       setImg(imageSelected);
+      setFotoURL(URL.createObjectURL(imageSelected));
     }
   };
 
-  // Handdle value of the input (profession)
+  // Handle value of the input (profession)
   useEffect(() => {
     const handleProfession = () => {
       const authorId = watch("authorId");
@@ -55,15 +72,25 @@ export const FormArtigo = ({ members }: { members: any[] }) => {
     handleProfession();
   }, [watch("authorId")]);
 
+
   return (
     <>
       <main className="grid place-items-center  bg-gray-200 pr-8">
         <div className=" place-items-center  max-w-screen-xl w-full">
           <form onSubmit={onSubmit} className="ml-5">
-            <div className="m-4 pt-4 flex">
+            <div className="m-4 pt-4 gap-y-5
+            grid place-items-center md:grid-cols-2 
+            ">
+                 <Image
+                 src={fotoURL}
+                 height={150}
+                 width={300}
+                 alt="erro"
+                 />
+
               <div className="ml-5">
                 <label
-                  className="block mb-2 text-sm font-medium text-gray-900"
+                  className="text-center block mb-2 text-sm font-medium text-gray-900"
                   htmlFor="image"
                 >
                   Upload de imagem
@@ -76,10 +103,12 @@ export const FormArtigo = ({ members }: { members: any[] }) => {
                   aria-describedby="file_input_help"
                   id="image"
                   type="file"
+                  accept="image/jpg, image/jpeg, image/png"
                   required
                 />
-                <p className="mt-1 text-sm text-gray-500" id="file_input_help">
-                  SVG, PNG, JPG or GIF (MAX. 800x400px).
+                <p className="text-center mt-1 text-sm text-gray-500" id="file_input_help">
+                jpeg, jpg or png (Máx. 500 x 500px).<br/>
+                  Máx(2Mb)
                 </p>
               </div>
             </div>
@@ -112,7 +141,7 @@ export const FormArtigo = ({ members }: { members: any[] }) => {
               <div className="ml-5 mb-4">
                 <label
                   className="block text-gray-700 text-sm font-bold mb-2"
-                  htmlFor="cargo"
+                  htmlFor="profession"
                 >
                   Profession
                 </label>
@@ -120,7 +149,7 @@ export const FormArtigo = ({ members }: { members: any[] }) => {
                   value={userSelected}
                   className="shadow appearance-none border rounded w-full py-2 px-3 
                         text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  id="Profession"
+                  id="profession"
                   type="text"
                   placeholder="Profession"
                   readOnly
@@ -147,7 +176,7 @@ export const FormArtigo = ({ members }: { members: any[] }) => {
               <div className="ml-5 mb-10">
                 <label
                   className="block text-gray-700 text-sm font-bold mb-2"
-                  htmlFor="cargo"
+                  htmlFor="title"
                 >
                   Titulo
                 </label>
@@ -176,7 +205,11 @@ export const FormArtigo = ({ members }: { members: any[] }) => {
                   required
                 ></textarea>
               </div>
-              <div className="text-end">
+              <div className="flex flex-col py-4 md:flex-row md:justify-end items-center md:gap-14">
+                {message &&
+                <div className="text-black">
+                  {message}
+                </div>}
                 <button
                   type="submit"
                   className="my-7 ml-5 inline-flex items-center px-5 py-2.5 text-sm font-medium 
